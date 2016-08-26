@@ -9,6 +9,7 @@
 """
 Text generation in python using CFG
 """
+from __future__ import print_function
 import random
 from collections import defaultdict, deque
 
@@ -122,7 +123,7 @@ class CFG:
         productions = list(enumerate(self._grammar[start]))
         i,choice = weighted_choice(productions,
                 key=lambda p:weights[start,p[0]])
-        if output: print '-'*depth, choice
+        if output: print('-'*depth, choice)
         weights[start,i] *= cfactor
         s = []
         for var in choice:
@@ -172,12 +173,12 @@ def print_tree(tree, depth=0):
     Print the given tree and its structure
     :tree: The tree constructed by CFG.generate()
     """
-    print '+','--'*depth,tree[0]
+    print('+','--'*depth,tree[0])
     if isinstance(tree[1], str):
-        print '|','  '*depth,'->',tree[1]
+        print('|','  '*depth,'->',tree[1])
         return
     if isinstance(tree[1],Terminal):
-        print '|','  '*depth,'->',repr(tree[1])
+        print('|','  '*depth,'->',repr(tree[1]))
         return
     for subtree in tree[1]:
         print_tree(subtree, depth+1)

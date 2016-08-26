@@ -9,6 +9,7 @@
 """
 Example showing how to generate text using textgen
 """
+from __future__ import print_function
 import textgen
 from textgen import Terminator
 from collections import defaultdict
@@ -43,10 +44,10 @@ def main():
 
     freq = defaultdict(lambda: 0)
     for dataset in training_data:
-        print "Training on", dataset
+        print("Training on", dataset)
         train_from_data(freq,dataset)
 
-    print "=== Generated Text ==="
+    print("=== Generated Text ===")
     G = textgen.CFG()
     # Nouns
     noun = Terminator('data/nouns/nouns','noun')
@@ -116,19 +117,19 @@ def main():
     G.add_production('SVP', sverb, 'SNP', 'LPP')
 
     # Output
-    print "\n== Sample Tree =="
+    print("\n== Sample Tree ==")
 
     tree = G.generate(0.5, terminals=False)
     textgen.print_tree(tree)
 
-    print "\n== Generating using a template =="
-    print "\t", textgen.flatten_tree(tree),'\n'
-    for i in xrange(10):
-        print textgen.to_sentence(tree, key=lambda s,x: freq[s[-1],x])
+    print("\n== Generating using a template ==")
+    print('\t', textgen.flatten_tree(tree),'\n')
+    for i in range(10):
+        print(textgen.to_sentence(tree, key=lambda s,x: freq[s[-1],x]))
 
-    print "\n== Generating a batch of samples =="
+    print("\n== Generating a batch of samples ==")
     for tree in G.generate_batch(0.5, 10, terminals=False):
-        print textgen.to_sentence(tree, key=lambda s,x: freq[s[-1],x])
+        print(textgen.to_sentence(tree, key=lambda s,x: freq[s[-1],x]))
 
 if __name__ == "__main__":
     main()
