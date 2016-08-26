@@ -72,12 +72,15 @@ class Terminator(Terminal):
     def __repr__(self):
         return self.nickname
 
+Epsilon = Terminal('', nickname='eps')
+
 class CFG:
     """
     Represents a context-free grammar
     """
     def __init__(self):
         self._grammar = defaultdict(list)
+        self._terminals = set()
 
     def add_production(self, var, *outputs):
         """
@@ -88,6 +91,7 @@ class CFG:
         :outputs: The values to replace var with
         """
         self._grammar[var].append(outputs)
+        self._terminals.add(o for o in outputs if isinstance(o, Terminal))
 
     def generate_batch(self, cfactor, nsamples, terminals=True):
         """

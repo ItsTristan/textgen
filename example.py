@@ -90,6 +90,9 @@ def main():
     # Conjunctions
     conj = Terminator('data/joins/compound','conj')
 
+    # Epsilon production
+    eps = textgen.Epsilon
+
     # Grammar rules to produce from
     G.add_production('S', 'C')
     G.add_production('S', 'C', conj, 'C')
