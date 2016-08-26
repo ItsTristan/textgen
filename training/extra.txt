@@ -1,0 +1,9 @@
+This file contains extra training data for text gen.
+
+pick up a rubik's cube.
+put the rubik's cube down.
+give me the rubik's cubes.
+do not lift the container.
+there is a container on the table.
+that container is not big enough, use a bigger container.
+give me a container large enough for these markers.
