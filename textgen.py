@@ -125,31 +125,53 @@ def weighted_choice(*values, **kwargs):
 
 def main():
     G = CFG()
-    noun = Terminator('data/nouns','noun')
-    verb = Terminator('data/verbs','verb')
-    depverb = Terminator('data/dependent_verbs','depverb')
-    prep = Terminator('data/prepositions','prep')
-    loc = Terminator('data/locations','loc')
-    pron = Terminator('data/pronouns','pron')
-    adj = Terminator('data/adjectives','adj')
-    adv = Terminator('data/adverbs','adv')
-    det = Terminator('data/determiners','det')
-    conj = Terminator('data/conjunctions','conj')
+    noun = Terminator('data/nouns/nouns','noun')
+    pnoun = Terminator('data/nouns/plurals','plural')
+    pro = Terminator('data/nouns/obj_pronouns','pron')
+    ppro = Terminator('data/nouns/obj_plural_pronouns', 'pron')
+    cont = Terminator('data/nouns/container', 'noun')
+    pcont = Terminator('data/nouns/containers', 'noun')
+
+    det = Terminator('data/determiners/only','det')
+    pdet = Terminator('data/determiners/multiple','det')
+    sdet = Terminator('data/determiners/singular','det')
+
+    verb = Terminator('data/verbs/verbs','verb')
+    depverb = Terminator('data/verbs/dependent_verbs','depverb')
+
+    prep = Terminator('data/prepositions/prepositions','prep')
+    loc = Terminator('data/prepositions/locations','loc')
+    into = Terminator('data/prepositions/contained','loc')
+
+    adj = Terminator('data/adjectives/adjectives','adj')
+    adv = Terminator('data/adverbs/adverbs','adv')
+
+
+    conj = Terminator('data/joins/compound','conj')
 
     G.add_production('S', 'C')
     G.add_production('S', 'C', conj, 'C')
     G.add_production('C', 'DVP')
     G.add_production('NP', det, noun)
+    G.add_production('NP', pdet, pnoun)
+    G.add_production('NP', sdet, noun)
     G.add_production('NP', det, noun, 'LP')
-    G.add_production('PP', prep, 'NP')
-    G.add_production('LP', loc, 'NP')
+    G.add_production('NP', pdet, pnoun, 'LP')
+    G.add_production('CNP', det, cont)
+    G.add_production('CNP', pdet, pcont)
+    G.add_production('CNP', sdet, cont)
+    G.add_production('CNP', det, cont, 'LP')
+    G.add_production('CNP', pdet, pcont, 'LP')
+    G.add_production('LP', prep, 'NP')
+    G.add_production('PP', into, 'CNP')
+    G.add_production('PP', loc, 'NP')
     G.add_production('VP', verb)
     G.add_production('VP', 'DVP')
     G.add_production('DVP', verb, 'NP')
     G.add_production('DVP', depverb, 'NP', 'PP')
 
     for _ in range(1):
-        print(G.generate(print_tree=True))
+        print(G.generate(cfactor=.25, print_tree=True))
 
 if __name__ == "__main__":
     main()
