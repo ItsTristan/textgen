@@ -34,37 +34,6 @@ class Terminator(Terminal):
     def __repr__(self):
         return self.nickname
 
-class Tree:
-    def __init__(self, data, *nodes):
-        self.data = data
-        self.subtrees = []
-        for node in nodes:
-            self.add(node)
-    def __getitem__(self, i):
-        return self.subtrees[i]
-    def leafs(self):
-        """
-        Returns all leaf nodes of the tree
-        """
-        if self.is_leaf():
-            return [self.data]
-        L = []
-        for subtree in self.subtrees:
-            L += subtree.leafs()
-        return L
-    def is_leaf(self):
-        return len(self.subtrees) == 0
-
-    def add(self, subtree_data):
-        self.subtrees.append(Tree(subtree_data))
-        return self.subtrees[-1]
-    def __str__(self):
-        return self._stringify()
-
-    def _stringify(self, depth=0):
-        s = '--'*depth + repr(self.data) + '\n'
-        return (s + '\n'.join([subtree._stringify(depth+1) for subtree in self.subtrees])).rstrip()
-
 class CFG:
     def __init__(self):
         self._grammar = defaultdict(list)
@@ -80,22 +49,37 @@ class CFG:
             less seen branches to be prefered.
         """
         weights = defaultdict(lambda: 1.0)
-        return self._generate(cfactor, 'S', weights, output=print_tree)
+        T = self._generate(cfactor, 'S', weights, output=print_tree)
+        return T
 
-    def _generate(self, cfactor, start, weights, depth=0, output=False):
+    def _generate(self, cfactor, start, weights={}, depth=0, output=False):
         if isinstance(start, Terminal):
-            return start.produce()
+            return start, start.produce()
 
         productions = list(enumerate(self._grammar[start]))
         i,choice = weighted_choice(productions,
                 key=lambda p:weights[start,p[0]])
         if output: print '-'*depth, choice
         weights[start,i] *= cfactor
-        s = ''
+        s = []
         for var in choice:
-            s += self._generate(cfactor, var, weights, depth+1, output) + ' '
-        return s.rstrip()
+            s.append(self._generate(cfactor, var, weights, depth+1, output))
+        return start, s
 
+def flatten_tree(tree):
+    if isinstance(tree[1],str):
+        return [tree[1]]
+    s = []
+    for subtree in tree[1]:
+        s += flatten_tree(subtree)
+    return s
+def print_tree(tree, depth=0):
+    print '+','--'*depth,tree[0]
+    if isinstance(tree[1], str):
+        print '|','  '*depth,'->',tree[1]
+        return
+    for subtree in tree[1]:
+        print_tree(subtree, depth+1)
 
 def weighted_choice(*values, **kwargs):
     """
@@ -171,7 +155,8 @@ def main():
     G.add_production('DVP', depverb, 'NP', 'PP')
 
     for _ in range(1):
-        print(G.generate(cfactor=.25, print_tree=True))
+        text = G.generate(cfactor=.5, print_tree=True)
+        print ' '.join(flatten_tree(text))
 
 if __name__ == "__main__":
     main()
