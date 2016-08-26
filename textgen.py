@@ -207,15 +207,14 @@ def weighted_choice(*values, **kwargs):
     if len(values) == 0:
         raise TypeError('weighted_choice expected 1 arguments, got 0')
 
-    weights = [key(v) for v in values]
-    s = sum(weights)
-    r = random.random() * s
-    for v,w in zip(values, weights):
-        s -= w
-        if r > s:
+    weights = {v:key(v) for v in values}
+    total = sum(weights.values())
+    r = random.uniform(0, total)
+    upto = 0
+    for v, w in weights.items():
+        if upto + w >= r:
             return v
-    return values[-1]
-
-
+        upto += w
+    assert False
 
 
