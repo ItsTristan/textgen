@@ -14,7 +14,7 @@ import textgen
 from textgen import Terminator
 from collections import defaultdict
 
-def train_from_data(bigrams, fname):
+def train_from_data(bigrams, fname, scale=1):
     """
     Trains the bigram table using the given file
     :bigram: An defaultdict object that stores frequencies
@@ -32,20 +32,28 @@ def train_from_data(bigrams, fname):
             line = remove_punct(line)
             for word in line.split():
                 if not word: continue
-                bigrams[context, word.lower()] += 1
+                bigrams[context, word.lower()] += scale
                 context = word.lower()
 
 def main():
     # Load files for frequency training
+    from nltk.corpus import abc
     training_data = [
+            'test',
             'training/big.txt',      # http://norvig.com/big.txt
-            'training/extra.txt'
+            'training/extra.txt',
+            '/usr/share/nltk_data/corpora/abc/science.txt',
+            '/usr/share/nltk_data/corpora/abc/rural.txt'
             ]
 
     freq = defaultdict(lambda: 0)
     for dataset in training_data:
         print("Training on", dataset)
-        train_from_data(freq,dataset)
+        try:
+            train_from_data(freq, dataset)
+        except IOError as e:
+            print(e)
+
 
     print("=== Generated Text ===")
     G = textgen.CFG()
@@ -116,6 +124,9 @@ def main():
     G.add_production('SVP', sverb, 'SNP', 'IPP')
     G.add_production('SVP', sverb, 'SNP', 'LPP')
 
+    def weight(s, x):
+        return freq[s[-1],x] - sum(w==x for w in x) + 1
+
     # Output
     print("\n== Sample Tree ==")
 
@@ -125,11 +136,11 @@ def main():
     print("\n== Generating using a template ==")
     print('\t', textgen.flatten_tree(tree),'\n')
     for i in range(10):
-        print(textgen.to_sentence(tree, key=lambda s,x: freq[s[-1],x]))
+        print(textgen.to_sentence(tree, key=weight))
 
     print("\n== Generating a batch of samples ==")
     for tree in G.generate_batch(0.5, 10, terminals=False):
-        print(textgen.to_sentence(tree, key=lambda s,x: freq[s[-1],x]))
+        print(textgen.to_sentence(tree, key=weight))
 
 if __name__ == "__main__":
     main()
