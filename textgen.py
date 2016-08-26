@@ -22,15 +22,25 @@ class Terminal:
         return self.nickname
 
 class Terminator(Terminal):
-    def __init__(self, fname, nickname='Terminator'):
+    def __init__(self, fname, nickname='Terminator', cfactor=.8):
         self.nickname=nickname
+        self.cfactor=cfactor
+        self._weights = defaultdict(lambda: 1.0)
         with open(fname) as f:
             self.data = [s.strip() for s in f]
     def produce(self):
         """
         Returns a random terminal
         """
-        return random.choice(self.data)
+        i = weighted_choice(range(len(self.data)), key=self._key)
+        self._update(i)
+        return self.data[i]
+    def _update(self, index):
+        self._weights[index] *= self.cfactor
+    def _key(self, index):
+        return self._weights[index]
+    def reset(self):
+        self._weights.clear()
     def __repr__(self):
         return self.nickname
 
@@ -41,6 +51,10 @@ class CFG:
     def add_production(self, var, *outputs):
         self._grammar[var].append(outputs)
 
+    def generate_batch(self, cfactor, nsamples):
+        weights = defaultdict(lambda: 1.0)
+        return [self._generate(cfactor,'S',weights) for _ in range(nsamples)]
+
     def generate(self, cfactor=0.5, print_tree=False):
         """
         Generates random data from the grammar
@@ -49,8 +63,7 @@ class CFG:
             less seen branches to be prefered.
         """
         weights = defaultdict(lambda: 1.0)
-        T = self._generate(cfactor, 'S', weights, output=print_tree)
-        return T
+        return self._generate(cfactor, 'S', weights, output=print_tree)
 
     def _generate(self, cfactor, start, weights={}, depth=0, output=False):
         if isinstance(start, Terminal):
@@ -154,9 +167,11 @@ def main():
     G.add_production('DVP', verb, 'NP')
     G.add_production('DVP', depverb, 'NP', 'PP')
 
-    for _ in range(1):
-        text = G.generate(cfactor=.5, print_tree=True)
-        print ' '.join(flatten_tree(text))
+    for sentence in G.generate_batch(0.5, 10):
+        print ' '.join(flatten_tree(sentence))
+    sentence = G.generate(0.5)
+    print_tree(sentence)
+    print ' '.join(flatten_tree(sentence))
 
 if __name__ == "__main__":
     main()
